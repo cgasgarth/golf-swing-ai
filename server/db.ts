@@ -20,6 +20,19 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS swing_analyses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    swing_id INTEGER NOT NULL,
+    phase_tags TEXT,
+    metrics_json TEXT,
+    tips_json TEXT,
+    drills_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(swing_id) REFERENCES swings(id) ON DELETE CASCADE
+  )
+`);
+
 interface User {
   id: number;
   username: string;
@@ -65,5 +78,41 @@ export const swingService = {
   },
   getUserSwings: (userId: number): Swing[] => {
     return db.query('SELECT * FROM swings WHERE user_id = ?').all(userId) as Swing[];
+  }
+};
+
+interface SwingAnalysis {
+  id: number;
+  swing_id: number;
+  phase_tags: string | null;
+  metrics_json: string | null;
+  tips_json: string | null;
+  drills_json: string | null;
+  created_at: string;
+}
+
+export const analysisService = {
+  saveAnalysis: (swingId: number, analysis: { phaseTags: string; metrics: any; tips: any; drills: any }) => {
+    db.run(
+      'INSERT INTO swing_analyses (swing_id, phase_tags, metrics_json, tips_json, drills_json) VALUES (?, ?, ?, ?, ?)',
+      [
+        swingId,
+        analysis.phaseTags,
+        JSON.stringify(analysis.metrics),
+        JSON.stringify(analysis.tips),
+        JSON.stringify(analysis.drills),
+      ]
+    );
+    return { success: true };
+  },
+  getAnalysisForSwing: (swingId: number): SwingAnalysis | null => {
+    return db.query('SELECT * FROM swing_analyses WHERE swing_id = ?').get(swingId) as SwingAnalysis | null;
+  },
+  getAnalysisForUser: (userId: number) => {
+    return db.query(`
+      SELECT sa.* FROM swing_analyses sa 
+      JOIN swings s ON sa.swing_id = s.id 
+      WHERE s.user_id = ?
+    `).all(userId) as SwingAnalysis[];
   }
 };
