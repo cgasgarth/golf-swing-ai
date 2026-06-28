@@ -1,5 +1,6 @@
 import React from 'react';
 import { SwingMetrics, PhaseData, Drill } from '../types';
+import { DEMO_ANALYSIS, DEMO_TIPS } from '../constants/demo';
 
 const MockMetrics: SwingMetrics = { clubAngle: 45, shoulderTilt: 12, hipRotation: 30, tempo: '3:1' };
 const MockPhases: PhaseData[] = [
@@ -13,6 +14,7 @@ const MockPhases: PhaseData[] = [
 
 export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData>(MockPhases[0]);
+  const [analysisData, setAnalysisData] = React.useState<PhaseData[]>(MockPhases);
   const [fileName, setFileName] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [tips, setTips] = React.useState<Drill[]>([]);
@@ -52,6 +54,13 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
     setTimeout(() => setIsAnalyzing(false), 2000);
   };
 
+  const handleLoadDemo = () => {
+    setFileName('demo-swing.mp4');
+    setAnalysisData(DEMO_ANALYSIS);
+    setSelectedPhase(DEMO_ANALYSIS[0]);
+    setTips(DEMO_TIPS);
+  };
+
   return (
     <div className="dashboard">
       <header>
@@ -63,12 +72,15 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
         <section className="upload-section" aria-label="Video Upload">
           <input type="file" accept="video/*" onChange={handleFileChange} />
           {fileName && <span className="selected-file">Selected: {fileName}</span>}
-          <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
-            {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
-          </button>
-        </section>
-    
-        <div className="analysis-grid">
+           <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
+             {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
+           </button>
+           <button onClick={handleLoadDemo} disabled={isAnalyzing} className="demo-button">
+             Load Demo Swing
+           </button>
+          </section>
+     
+         <div className="analysis-grid">
           <section className="video-player" aria-label="Swing Video Analysis">
             <div className="placeholder">
               <div className="video-placeholder-content">
@@ -80,11 +92,11 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
                 <div className="confidence-badge">Confidence: 94%</div>
               </div>
             </div>
-            <div className="timeline" role="tablist" aria-label="Swing Phase Timeline">
-              {MockPhases.map(p => (
-                <button 
-                  key={p.phase} 
-                  role="tab"
+             <div className="timeline" role="tablist" aria-label="Swing Phase Timeline">
+               {analysisData.map(p => (
+                 <button 
+                   key={p.phase} 
+                   role="tab"
                   aria-selected={selectedPhase.phase === p.phase}
                   aria-label={`Select ${p.phase} phase`}
                   className={`phase-marker ${selectedPhase.phase === p.phase ? 'active' : ''}`} 
