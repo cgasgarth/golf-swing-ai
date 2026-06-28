@@ -30,105 +30,132 @@ body {
   padding: 1.5rem;
 }
 
-.swing-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 1rem;
-  margin-top: 1.5rem;
+/* Dashboard Base Layout */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
 }
 
-.card {
+.dashboard header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.upload-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px 350px;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-player {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.timeline {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scrollbar-width: thin;
+}
+
+.phase-marker {
+  background: var(--surface-lighter);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.phase-marker:hover {
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.phase-marker.active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+  font-weight: 700;
+}
+
+.metrics-panel, .tips-panel {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.metrics-panel {
-  grid-column: span 4;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+.selected-phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
-.metric-item {
+.metric-card {
   background: var(--surface-lighter);
   padding: 0.75rem;
   border-radius: 8px;
   border-left: 3px solid var(--accent-cyan);
-}
-
-.metric-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-}
-
-.metric-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--primary);
   font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
 }
 
-.phase-timeline {
-  grid-column: span 12;
-  display: flex;
-  gap: 0.5rem;
-  padding: 1rem 0;
-  overflow-x: auto;
+.drill-card {
+  background: var(--surface-lighter);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
 }
 
-.phase-segment {
-  flex: 1;
-  height: 8px;
-  background: var(--border);
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.phase-segment.active {
-  background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
-  box-shadow: 0 0 8px var(--accent-cyan);
-}
-
-.tips-panel {
-  grid-column: span 12;
-  background: linear-gradient(135deg, var(--surface), var(--surface-lighter));
-  border: 1px solid var(--primary);
-  border-left: 4px solid var(--primary);
-}
-
-.tips-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 0.75rem;
-}
-
-.btn {
+.drill-card button {
+  margin-top: 0.5rem;
   background: var(--primary);
-  color: var(--bg);
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: 700;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  font-size: 0.85rem;
+  font-weight: 600;
 }
-
-.btn:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
-}
-
 
 .placeholder {
   position: relative;
@@ -184,14 +211,6 @@ body {
   font-weight: 700;
   padding: 0.25rem 0.6rem;
   border-radius: 12px;
-}
-
-.selected-phase-header {
-  grid-column: span 2;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
 }
 
 .phase-badge {
