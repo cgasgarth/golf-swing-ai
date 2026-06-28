@@ -32,7 +32,7 @@ describe('App Skeleton', () => {
     ];
     
     global.fetch = vi.fn().mockImplementation((url: string) => {
-      if (url === '/api/swings/tips') {
+       if (url === '/swings/tips') {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve(mockTips),
@@ -52,6 +52,6 @@ describe('App Skeleton', () => {
       expect(screen.getByText(/DRILL: API Drill/)).toBeInTheDocument();
     });
     
-    expect(global.fetch).toHaveBeenCalledWith('/api/swings/tips', expect.any(Object));
+     expect(global.fetch).toHaveBeenCalledWith('/swings/tips', expect.any(Object));
   });
 });

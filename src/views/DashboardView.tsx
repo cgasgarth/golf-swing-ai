@@ -21,7 +21,7 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
   const fetchTips = async (phase: string) => {
     setIsFetchingTips(true);
     try {
-      const response = await fetch('/api/swings/tips', {
+       const response = await fetch('/swings/tips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phase }),
