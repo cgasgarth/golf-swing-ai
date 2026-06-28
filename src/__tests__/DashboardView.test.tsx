@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, test, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { DashboardView } from '../views/DashboardView';
@@ -8,7 +8,7 @@ describe('DashboardView Initial State', () => {
   const mockLogout = vi.fn();
 
   test('shows empty state initially and hides analysis grid', () => {
-    render(<DashboardView onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
     
     expect(screen.getByText('Ready for Analysis')).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('DashboardView Phase Tabs', () => {
   const mockLogout = vi.fn();
 
   test('phase tabs are buttons with role="tab" and are selectable', () => {
-    render(<DashboardView onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
     
     const loadDemoBtn = screen.getByText('Load Demo Swing');
     fireEvent.click(loadDemoBtn);
@@ -42,7 +42,7 @@ describe('DashboardView Demo Loading', () => {
   const mockLogout = vi.fn();
 
   test('loads demo swing and sets correct state', async () => {
-    render(<DashboardView onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
     
     const loadDemoBtn = screen.getByText('Load Demo Swing');
     fireEvent.click(loadDemoBtn);
@@ -58,6 +58,7 @@ describe('DashboardView Demo Loading', () => {
 
 describe('DashboardView API Calls', () => {
   const mockLogout = vi.fn();
+  const mockUser = { id: '123', username: 'testuser' };
 
   test('fetchTips sends phase and metrics to /swings/tips when phase is selected', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -65,12 +66,12 @@ describe('DashboardView API Calls', () => {
       json: async () => [],
     } as Response);
 
-    render(<DashboardView onLogout={mockLogout} />);
+    render(<DashboardView user={mockUser} onLogout={mockLogout} />);
     
     const loadDemoBtn = screen.getByText('Load Demo Swing');
     fireEvent.click(loadDemoBtn);
 
-    await vi.waitFor(() => {
+    await waitFor(() => {
       const lastCall = fetchSpy.mock.calls[0];
       if (!lastCall) throw new Error('Fetch not called');
       const options = lastCall[1];
@@ -85,6 +86,66 @@ describe('DashboardView API Calls', () => {
 
     fetchSpy.mockRestore();
   });
+
+  test('successful upload and analyze flow', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ swingId: 456 }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          metrics: [{ phase: 'address', timestamp: 0, metrics: { clubAngle: 40, shoulderTilt: 12, hipRotation: 30, tempo: '3:1' } }]
+        }),
+      } as Response)
+      .mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      } as Response);
+
+    render(<DashboardView user={mockUser} onLogout={mockLogout} />);
+    
+    const fileInput = screen.getByTestId('video-upload-input');
+    const file = new File(['video content'], 'test-swing.mp4', { type: 'video/mp4' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const analyzeBtn = screen.getByText('Upload & Analyze');
+    fireEvent.click(analyzeBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('ADDRESS')).toBeInTheDocument();
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith('/swings/upload', expect.anything());
+    expect(fetchSpy).toHaveBeenCalledWith('/swings/analyze', expect.anything());
+    
+    fetchSpy.mockRestore();
+  });
+
+  test('handles upload failure and uses fallback mock data', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 500,
+    } as Response);
+
+    render(<DashboardView user={mockUser} onLogout={mockLogout} />);
+    
+    const fileInput = screen.getByTestId('video-upload-input');
+    const file = new File(['video content'], 'test-swing.mp4', { type: 'video/mp4' });
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const analyzeBtn = screen.getByText('Upload & Analyze');
+    fireEvent.click(analyzeBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Analysis failed. Using mock data for demonstration/i)).toBeInTheDocument();
+      expect(screen.getByText('ADDRESS')).toBeInTheDocument();
+    });
+
+    fetchSpy.mockRestore();
+  });
+
 });
 
 

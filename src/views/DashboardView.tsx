@@ -12,11 +12,13 @@ const MockPhases: PhaseData[] = [
   { phase: 'followthrough', timestamp: 5, metrics: { ...MockMetrics, clubAngle: 110 } },
 ];
 
-export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
+export const DashboardView: React.FC<{ user: any; onLogout: () => void }> = ({ user, onLogout }) => {
   const [analysisData, setAnalysisData] = React.useState<PhaseData[]>([]);
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [fileName, setFileName] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const [tips, setTips] = React.useState<Drill[]>([]);
   const [isFetchingTips, setIsFetchingTips] = React.useState(false);
 
@@ -47,21 +49,20 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setFileName(file.name);
     }
   };
 
   const handleAnalyze = async () => {
-    if (!fileName) return;
+    if (!selectedFile) return;
     setIsAnalyzing(true);
+    setError(null);
     try {
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      const file = fileInput?.files?.[0];
-      if (!file) throw new Error('No file selected');
-
       const formData = new FormData();
-      formData.append('video', file);
-      formData.append('userId', '1'); // Simplified userId for now
+      formData.append('video', selectedFile);
+      formData.append('userId', user?.id || '1');
 
       const uploadResponse = await fetch('/swings/upload', {
         method: 'POST',
@@ -80,16 +81,13 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
       if (!analyzeResponse.ok) throw new Error('Analysis failed');
       const analysis = await analyzeResponse.json();
       
-      // The server returns analysis results via analysisService.saveAnalysis
-      // based on api.ts:32, it saves and returns an object. 
-      // Let's assume the result contains the metrics array.
       const results = analysis.metrics || [];
       setAnalysisData(results);
       if (results.length > 0) setSelectedPhase(results[0]);
       
     } catch (error) {
       console.error('Analysis error:', error);
-      alert('Analysis failed. Using mock data for demonstration.');
+      setError('Analysis failed. Using mock data for demonstration.');
       setAnalysisData(MockPhases);
       setSelectedPhase(MockPhases[0]);
     } finally {
@@ -114,11 +112,12 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
       </header>
       
       <main className="dashboard-main">
+        {error && <div className="error-banner" role="alert">{error}</div>}
         <section className="upload-section" aria-label="Video Upload">
-          <input type="file" accept="video/*" onChange={handleFileChange} />
+          <input type="file" accept="video/*" onChange={handleFileChange} data-testid="video-upload-input" />
           {fileName && <span className="selected-file">Selected: {fileName}</span>}
-           <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
-              {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
+            <button onClick={handleAnalyze} disabled={!selectedFile || isAnalyzing}>
+               {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
             </button>
             <button onClick={handleLoadDemo} disabled={isAnalyzing} className="demo-button">
               Load Demo Swing
