@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
 
 test('demo flow: login, upload, analysis, AI tips, logout', async ({ page }) => {
   // 1. Login
@@ -18,16 +17,16 @@ test('demo flow: login, upload, analysis, AI tips, logout', async ({ page }) => 
   await expect(page.locator('.selected-file')).toContainText('Selected: swing.mp4');
 
   // 3. Analysis Interaction
-  await page.getByText('Upload & Analyze').click();
+  await page.getByRole('button', { name: 'Upload & Analyze' }).click();
   await expect(page.getByText('Analyzing...')).toBeVisible();
-  await expect(page.getByText('Upload & Analyze')).toBeVisible(); // Wait for it to finish
+  await expect(page.getByRole('button', { name: 'Upload & Analyze' })).toBeVisible(); // Wait for it to return to clickable state
 
   // 4. AI Tips Panel Visibility
   await expect(page.locator('.tips-panel')).toBeVisible();
   await expect(page.getByText('AI Drills & Tips')).toBeVisible();
 
   // 5. Phase Interaction (Selecting a phase updates tips)
-  await page.getByText('top').click();
+  await page.getByText('top', { exact: true }).click();
   await expect(page.locator('.phase-badge')).toHaveText('TOP');
 
   // 6. Logout
