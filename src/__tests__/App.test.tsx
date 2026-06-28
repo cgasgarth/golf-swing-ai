@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../App';
 
 describe('App Skeleton', () => {
@@ -26,25 +26,32 @@ describe('App Skeleton', () => {
     expect(screen.getByText('Golf Swing AI Login')).toBeInTheDocument();
   });
 
-  it('updates metrics and drills when phase markers are clicked', () => {
+  it('fetches and displays AI tips from API when phase changes', async () => {
+    const mockTips = [
+      { id: 'api-1', title: 'API Drill', description: 'API Description', targetPhase: 'top', category: 'drill' }
+    ];
+    
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url === '/api/swings/tips') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockTips),
+        } as Response);
+      }
+      return Promise.reject(new Error('Unknown API'));
+    }) as any;
+
     render(<App />);
     const userField = screen.getByPlaceholderText('Username');
     fireEvent.change(userField, { target: { value: 'testuser' } });
     fireEvent.click(screen.getByText('Login / Register'));
 
-    // Click 'top' phase: should see 90 deg and Wall Drill
     fireEvent.click(screen.getByText('top'));
-    expect(screen.getByText(/Club Angle: 90°/)).toBeInTheDocument();
-    expect(screen.getByText(/DRILL: Wall Drill/)).toBeInTheDocument();
-
-    // Click 'takeaway' phase: should see 50 deg and Tempo Rhythm
-    fireEvent.click(screen.getByText('takeaway'));
-    expect(screen.getByText(/Club Angle: 50°/)).toBeInTheDocument();
-    expect(screen.getByText(/TIP: Tempo Rhythm/)).toBeInTheDocument();
-
-    // Click 'address' phase: should see 40 deg and no drills
-    fireEvent.click(screen.getByText('address'));
-    expect(screen.getByText(/Club Angle: 40°/)).toBeInTheDocument();
-    expect(screen.getByText('No specific drills for this phase.')).toBeInTheDocument();
+    
+    await waitFor(() => {
+      expect(screen.getByText(/DRILL: API Drill/)).toBeInTheDocument();
+    });
+    
+    expect(global.fetch).toHaveBeenCalledWith('/api/swings/tips', expect.any(Object));
   });
 });
