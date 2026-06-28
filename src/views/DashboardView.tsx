@@ -59,67 +59,72 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
         <button onClick={onLogout}>Logout</button>
       </header>
       
-      <div className="upload-section">
-        <input type="file" accept="video/*" onChange={handleFileChange} />
-        {fileName && <span className="selected-file">Selected: {fileName}</span>}
-        <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
-          {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
-        </button>
-      </div>
-
-      <div className="analysis-grid">
-        <div className="video-player">
-          <div className="placeholder">
-            <div className="video-placeholder-content">
-              Video Player Area
-              <div className="overlay-labels">
-                <span className="label pose">Pose Tracking</span>
-                <span className="label club">Club Path</span>
+      <main className="dashboard-main">
+        <section className="upload-section" aria-label="Video Upload">
+          <input type="file" accept="video/*" onChange={handleFileChange} />
+          {fileName && <span className="selected-file">Selected: {fileName}</span>}
+          <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
+            {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
+          </button>
+        </section>
+    
+        <div className="analysis-grid">
+          <section className="video-player" aria-label="Swing Video Analysis">
+            <div className="placeholder">
+              <div className="video-placeholder-content">
+                Video Player Area
+                <div className="overlay-labels">
+                  <span className="label pose">Pose Tracking</span>
+                  <span className="label club">Club Path</span>
+                </div>
+                <div className="confidence-badge">Confidence: 94%</div>
               </div>
-              <div className="confidence-badge">Confidence: 94%</div>
             </div>
-          </div>
-          <div className="timeline">
-            {MockPhases.map(p => (
-              <div 
-                key={p.phase} 
-                className={`phase-marker ${selectedPhase.phase === p.phase ? 'active' : ''}`} 
-                onClick={() => setSelectedPhase(p)}
-              >
-                {p.phase}
-              </div>
-            ))}
-          </div>
-        </div>
-
-         <div className="metrics-panel">
-            <div className="selected-phase-header">
-              <h3>TrackMan Metrics</h3>
-              <span className="phase-badge">{selectedPhase.phase.toUpperCase()}</span>
+            <div className="timeline" role="tablist" aria-label="Swing Phase Timeline">
+              {MockPhases.map(p => (
+                <button 
+                  key={p.phase} 
+                  role="tab"
+                  aria-selected={selectedPhase.phase === p.phase}
+                  aria-label={`Select ${p.phase} phase`}
+                  className={`phase-marker ${selectedPhase.phase === p.phase ? 'active' : ''}`} 
+                  onClick={() => setSelectedPhase(p)}
+                >
+                  {p.phase}
+                </button>
+              ))}
             </div>
-            <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
-            <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
-            <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
-            <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
+          </section>
+    
+            <section className="metrics-panel" aria-label="Analysis Metrics">
+               <div className="selected-phase-header">
+                 <h3 id="metrics-title">TrackMan Metrics</h3>
+                 <span className="phase-badge" aria-label={`Current Phase: ${selectedPhase.phase.toUpperCase()}`}>{selectedPhase.phase.toUpperCase()}</span>
+               </div>
+               <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
+               <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
+               <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
+               <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
+            </section>
+    
+            <section className="tips-panel" aria-label="AI Tips and Drills">
+              <h3>AI Drills & Tips</h3>
+              {isFetchingTips ? (
+                <p>Loading AI insights...</p>
+              ) : tips.length > 0 ? (
+                tips.map(drill => (
+                  <div key={drill.id} className="drill-card">
+                    <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
+                    <p>{drill.description}</p>
+                    <button>View Drill Video</button>
+                  </div>
+                ))
+              ) : (
+                <p>No specific drills for this phase.</p>
+              )}
+            </section>
           </div>
-
-        <div className="tips-panel">
-          <h3>AI Drills & Tips</h3>
-          {isFetchingTips ? (
-            <p>Loading AI insights...</p>
-          ) : tips.length > 0 ? (
-            tips.map(drill => (
-              <div key={drill.id} className="drill-card">
-                <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
-                <p>{drill.description}</p>
-                <button>View Drill Video</button>
-              </div>
-            ))
-          ) : (
-            <p>No specific drills for this phase.</p>
-          )}
-        </div>
-      </div>
+        </main>
     </div>
   );
 };
