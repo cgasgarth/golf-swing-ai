@@ -17,10 +17,23 @@ const initDb = (database: Database) => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       video_url TEXT NOT NULL,
+      original_filename TEXT,
+      mime_type TEXT,
+      file_size INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
+
+  try {
+    db.run('ALTER TABLE swings ADD COLUMN original_filename TEXT');
+  } catch {}
+  try {
+    db.run('ALTER TABLE swings ADD COLUMN mime_type TEXT');
+  } catch {}
+  try {
+    db.run('ALTER TABLE swings ADD COLUMN file_size INTEGER');
+  } catch {}
 
   db.run(`
     CREATE TABLE IF NOT EXISTS swing_analyses (
@@ -79,12 +92,19 @@ interface Swing {
   id: number;
   user_id: number;
   video_url: string;
+  original_filename?: string | null;
+  mime_type?: string | null;
+  file_size?: number | null;
   created_at: string;
 }
 
 export const swingService = {
-  uploadSwing: (userId: number, videoUrl: string) => {
-    const result = db.run('INSERT INTO swings (user_id, video_url) VALUES (?, ?)', [userId, videoUrl]);
+  uploadSwing: (userId: number, videoUrl: string, metadata?: { filename?: string; mimeType?: string; size?: number }) => {
+    const { filename = null, mimeType = null, size = null } = metadata || {};
+    const result = db.run(
+      'INSERT INTO swings (user_id, video_url, original_filename, mime_type, file_size) VALUES (?, ?, ?, ?, ?)',
+      [userId, videoUrl, filename, mimeType, size]
+    );
     return { success: true, swingId: result.lastInsertRowid, userId };
   },
   getUserSwings: (userId: number): Swing[] => {
