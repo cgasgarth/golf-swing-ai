@@ -72,3 +72,18 @@ function determinePhase(frames: FrameSample[], frame: FrameSample, index: number
   
   return 'address';
 }
+
+export function analyzeSwingStub(swingId: number): AnalysisResult[] {
+  console.log(`Running swing analysis stub for swing ${swingId}`);
+  const phases: SwingPhase[] = ['address', 'backswing', 'top', 'downswing', 'impact', 'followthrough'];
+  return phases.map((phase, index) => ({
+    phase,
+    metrics: {
+      spineAngle: 160 + index * 2,
+      shoulderTilt: 5 + index,
+      hipRotation: index * 10,
+      shaftLean: 2 + index,
+    },
+    confidence: 1.0,
+  }));
+}

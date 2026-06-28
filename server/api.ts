@@ -1,6 +1,7 @@
 import { authService, swingService, analysisService } from './db';
 import { getSwingTips } from './ai';
 import { saveUploadedFile } from './services/upload';
+import { analyzeSwingStub } from './analysis';
 
 export const api = {
   post: async (path: string, body: any) => {
@@ -21,6 +22,19 @@ export const api = {
         };
       }
       return swingService.uploadSwing(Number(body.userId), videoUrl, metadata);
+    }
+    if (path === '/swings/analyze') {
+      const swingId = Number(body.swingId);
+      const analysisResults = analyzeSwingStub(swingId);
+      const phaseTags = analysisResults.map(r => r.phase).join(',');
+      const metrics = analysisResults.map(r => ({ phase: r.phase, ...r.metrics }));
+      
+      return analysisService.saveAnalysis(swingId, {
+        phaseTags,
+        metrics,
+        tips: [],
+        drills: [],
+      });
     }
     if (path === '/swings/analysis') return analysisService.saveAnalysis(body.swingId, body.analysis);
     if (path === '/swings/tips') return getSwingTips(body);
