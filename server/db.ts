@@ -1,37 +1,48 @@
 import { Database } from 'bun:sqlite';
 
-const db = new Database('golf_swing.sqlite');
+let db = new Database('golf_swing.sqlite');
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
-  )
-`);
+const initDb = (database: Database) => {
+  db = database;
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL
+    )
+  `);
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS swings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    video_url TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users(id)
-  )
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS swings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      video_url TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+  `);
 
-db.run(`
-  CREATE TABLE IF NOT EXISTS swing_analyses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    swing_id INTEGER NOT NULL,
-    phase_tags TEXT,
-    metrics_json TEXT,
-    tips_json TEXT,
-    drills_json TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(swing_id) REFERENCES swings(id) ON DELETE CASCADE
-  )
-`);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS swing_analyses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      swing_id INTEGER NOT NULL,
+      phase_tags TEXT,
+      metrics_json TEXT,
+      tips_json TEXT,
+      drills_json TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(swing_id) REFERENCES swings(id) ON DELETE CASCADE
+    )
+  `);
+};
+
+initDb(db);
+
+export const resetDb = (path: string = ':memory:') => {
+  const newDb = new Database(path);
+  initDb(newDb);
+  return newDb;
+};
 
 interface User {
   id: number;

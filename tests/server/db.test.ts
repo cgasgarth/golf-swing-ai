@@ -1,22 +1,35 @@
-import { describe, it } from 'vitest';
-
-/**
- * TEST PLAN: analysisService User Isolation
- * 
- * Current Implementation Constraint:
- * The database is a singleton ('golf_swing.sqlite') defined in server/db.ts.
- * Because the singleton is initialized at module load, creating a temporary 
- * DB for isolation is not practical without modifying the server/db.ts 
- * to accept a DB connection (injection).
- * 
- * Planned Tests (Skipped due to Singleton Isolation Risk):
- * 1. Save analysis for User A and verify User B cannot retrieve it via getAnalysisForUser.
- * 2. Ensure getAnalysisForUser only returns analyses linked to the user's own swings.
- * 3. Verify that analysis saved for swing X does not leak into results for swing Y.
- */
+import { describe, it, expect, beforeEach } from 'vitest';
+import { authService, swingService, analysisService, resetDb } from '../../server/db';
 
 describe('analysisService isolation', () => {
-  it.skip('should not allow user B to see user A analysis', async () => {
-    // Logic skipped to prevent server/db imports and bun:sqlite usage
+  beforeEach(() => {
+    resetDb(':memory:');
+  });
+
+  it('should not allow user B to see user A analysis', async () => {
+    await authService.register('userA', 'passA');
+    await authService.register('userB', 'passB');
+
+    const userA = await authService.login('userA', 'passA');
+    const userB = await authService.login('userB', 'passB');
+
+    if (!userA.success || !userB.success) throw new Error(`Auth failed: ${userA.error || ''} ${userB.error || ''}`);
+
+    swingService.uploadSwing(userA.user!.id, 'urlA');
+    const swingsA = swingService.getUserSwings(userA.user!.id);
+    const swingA = swingsA[0];
+
+    analysisService.saveAnalysis(swingA.id, {
+      phaseTags: 'top',
+      metrics: { angle: 45 },
+      tips: [],
+      drills: []
+    });
+
+    const analysesB = analysisService.getAnalysisForUser(userB.user!.id);
+    expect(analysesB).toHaveLength(0);
+    
+    const analysesA = analysisService.getAnalysisForUser(userA.user!.id);
+    expect(analysesA).toHaveLength(1);
   });
 });
