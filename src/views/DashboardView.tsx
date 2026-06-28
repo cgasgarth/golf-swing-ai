@@ -49,7 +49,16 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
 
       <div className="analysis-grid">
         <div className="video-player">
-          <div className="placeholder">Video Player Area</div>
+          <div className="placeholder">
+            <div className="video-placeholder-content">
+              Video Player Area
+              <div className="overlay-labels">
+                <span className="label pose">Pose Tracking</span>
+                <span className="label club">Club Path</span>
+              </div>
+              <div className="confidence-badge">Confidence: 94%</div>
+            </div>
+          </div>
           <div className="timeline">
             {MockPhases.map(p => (
               <div 
@@ -63,13 +72,16 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
           </div>
         </div>
 
-        <div className="metrics-panel">
-          <h3>TrackMan Metrics ({selectedPhase.phase})</h3>
-          <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
-          <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
-          <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
-          <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
-        </div>
+         <div className="metrics-panel">
+           <div className="selected-phase-header">
+             <h3>TrackMan Metrics</h3>
+             <span className="phase-badge">{selectedPhase.phase.toUpperCase()}</span>
+           </div>
+           <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
+           <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
+           <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
+           <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
+         </div>
 
         <div className="tips-panel">
           <h3>AI Drills & Tips</h3>
