@@ -84,8 +84,8 @@ interface Swing {
 
 export const swingService = {
   uploadSwing: (userId: number, videoUrl: string) => {
-    db.run('INSERT INTO swings (user_id, video_url) VALUES (?, ?)', [userId, videoUrl]);
-    return { success: true };
+    const result = db.run('INSERT INTO swings (user_id, video_url) VALUES (?, ?)', [userId, videoUrl]);
+    return { success: true, swingId: result.lastInsertRowid, userId };
   },
   getUserSwings: (userId: number): Swing[] => {
     return db.query('SELECT * FROM swings WHERE user_id = ?').all(userId) as Swing[];
