@@ -35,6 +35,7 @@ export interface AnalysisResult {
     shaftLean: number;
   };
   confidence: number;
+  boundary?: PhaseBoundary;
 }
 
 function calculateAngle(p1: Point, p2: Point, p3: Point): number {

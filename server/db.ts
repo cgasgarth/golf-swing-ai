@@ -34,19 +34,24 @@ const initDb = (database: Database) => {
   try {
     db.run('ALTER TABLE swings ADD COLUMN file_size INTEGER');
   } catch {}
+  try {
+    db.run('ALTER TABLE swing_analyses ADD COLUMN boundaries_json TEXT');
+  } catch {}
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS swing_analyses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      swing_id INTEGER NOT NULL,
-      phase_tags TEXT,
-      metrics_json TEXT,
-      tips_json TEXT,
-      drills_json TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(swing_id) REFERENCES swings(id) ON DELETE CASCADE
-    )
-  `);
+    db.run(`
+      CREATE TABLE IF NOT EXISTS swing_analyses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        swing_id INTEGER NOT NULL,
+        phase_tags TEXT,
+        boundaries_json TEXT,
+        metrics_json TEXT,
+        tips_json TEXT,
+        drills_json TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(swing_id) REFERENCES swings(id) ON DELETE CASCADE
+      )
+    `);
+
 };
 
 initDb(db);
@@ -123,12 +128,13 @@ interface SwingAnalysis {
 }
 
 export const analysisService = {
-  saveAnalysis: (swingId: number, analysis: { phaseTags: string; metrics: any; tips: any; drills: any }) => {
+  saveAnalysis: (swingId: number, analysis: { phaseTags: string; boundaries?: any; metrics: any; tips: any; drills: any }) => {
     db.run(
-      'INSERT INTO swing_analyses (swing_id, phase_tags, metrics_json, tips_json, drills_json) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO swing_analyses (swing_id, phase_tags, boundaries_json, metrics_json, tips_json, drills_json) VALUES (?, ?, ?, ?, ?, ?)',
       [
         swingId,
         analysis.phaseTags,
+        JSON.stringify(analysis.boundaries ?? []),
         JSON.stringify(analysis.metrics),
         JSON.stringify(analysis.tips),
         JSON.stringify(analysis.drills),
@@ -136,8 +142,16 @@ export const analysisService = {
     );
     return { success: true };
   },
-  getAnalysisForSwing: (swingId: number): SwingAnalysis | null => {
-    return db.query('SELECT * FROM swing_analyses WHERE swing_id = ?').get(swingId) as SwingAnalysis | null;
+  getAnalysisForSwing: (swingId: number): any | null => {
+    const result = db.query('SELECT * FROM swing_analyses WHERE swing_id = ?').get(swingId) as any | null;
+    if (!result) return null;
+    return {
+      ...result,
+      metrics: JSON.parse(result.metrics_json || '[]'),
+      boundaries: JSON.parse(result.boundaries_json || '[]'),
+      tips: JSON.parse(result.tips_json || '[]'),
+      drills: JSON.parse(result.drills_json || '[]'),
+    };
   },
   getAnalysisForUser: (userId: number) => {
     return db.query(`

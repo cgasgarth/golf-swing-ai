@@ -34,6 +34,46 @@ describe('analysisService isolation', () => {
   });
 });
 
+describe('analysisService boundaries persistence', () => {
+  beforeEach(() => {
+    resetDb(':memory:');
+  });
+
+  it('should persist boundaries when provided', () => {
+    const userId = 1;
+    swingService.uploadSwing(userId, 'url');
+    const swingId = swingService.getUserSwings(userId)[0].id;
+
+    const boundaries = [{ phase: 'top', frameIndex: 10, timestamp: 0.33 }];
+    analysisService.saveAnalysis(swingId, {
+      phaseTags: 'top',
+      boundaries,
+      metrics: {},
+      tips: [],
+      drills: []
+    });
+
+    const analysis = analysisService.getAnalysisForSwing(swingId);
+    expect(analysis?.boundaries).toEqual(boundaries);
+  });
+
+  it('should handle missing boundaries by defaulting to empty array', () => {
+    const userId = 1;
+    swingService.uploadSwing(userId, 'url');
+    const swingId = swingService.getUserSwings(userId)[0].id;
+
+    analysisService.saveAnalysis(swingId, {
+      phaseTags: 'top',
+      metrics: {},
+      tips: [],
+      drills: []
+    });
+
+    const analysis = analysisService.getAnalysisForSwing(swingId);
+    expect(analysis?.boundaries).toEqual([]);
+  });
+});
+
 describe('swingService metadata persistence', () => {
   beforeEach(() => {
     resetDb(':memory:');
