@@ -4,11 +4,26 @@ import { describe, test, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { DashboardView } from '../views/DashboardView';
 
+describe('DashboardView Initial State', () => {
+  const mockLogout = vi.fn();
+
+  test('shows empty state initially and hides analysis grid', () => {
+    render(<DashboardView onLogout={mockLogout} />);
+    
+    expect(screen.getByText('Ready for Analysis')).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+    expect(screen.queryByText('TrackMan Metrics')).not.toBeInTheDocument();
+  });
+});
+
 describe('DashboardView Phase Tabs', () => {
   const mockLogout = vi.fn();
 
   test('phase tabs are buttons with role="tab" and are selectable', () => {
     render(<DashboardView onLogout={mockLogout} />);
+    
+    const loadDemoBtn = screen.getByText('Load Demo Swing');
+    fireEvent.click(loadDemoBtn);
     
     const tabs = screen.getAllByRole('tab');
     expect(tabs.length).toBeGreaterThan(0);

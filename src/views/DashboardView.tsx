@@ -13,8 +13,8 @@ const MockPhases: PhaseData[] = [
 ];
 
 export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-  const [selectedPhase, setSelectedPhase] = React.useState<PhaseData>(MockPhases[0]);
-  const [analysisData, setAnalysisData] = React.useState<PhaseData[]>(MockPhases);
+  const [analysisData, setAnalysisData] = React.useState<PhaseData[]>([]);
+  const [selectedPhase, setSelectedPhase] = React.useState<PhaseData | null>(null);
   const [fileName, setFileName] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
   const [tips, setTips] = React.useState<Drill[]>([]);
@@ -40,7 +40,9 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
   };
 
   React.useEffect(() => {
-    fetchTips(selectedPhase.phase);
+    if (selectedPhase) {
+      fetchTips(selectedPhase.phase);
+    }
   }, [selectedPhase]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +53,11 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
 
   const handleAnalyze = () => {
     setIsAnalyzing(true);
-    setTimeout(() => setIsAnalyzing(false), 2000);
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setAnalysisData(MockPhases);
+      setSelectedPhase(MockPhases[0]);
+    }, 2000);
   };
 
   const handleLoadDemo = () => {
@@ -78,64 +84,74 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
            <button onClick={handleLoadDemo} disabled={isAnalyzing} className="demo-button">
              Load Demo Swing
            </button>
-          </section>
-     
-         <div className="analysis-grid">
-          <section className="video-player" aria-label="Swing Video Analysis">
-            <div className="placeholder">
-              <div className="video-placeholder-content">
-                Video Player Area
-                <div className="overlay-labels">
-                  <span className="label pose">Pose Tracking</span>
-                  <span className="label club">Club Path</span>
-                </div>
-                <div className="confidence-badge">Confidence: 94%</div>
+         </section>
+      
+          {!analysisData.length ? (
+            <div className="empty-state" aria-live="polite">
+              <h2>Ready for Analysis</h2>
+              <p>Upload your swing video or load a demo to begin analyzing your metrics.</p>
+              <div className="empty-state-cta">
+                <button onClick={handleLoadDemo} className="cta-button">Try a Demo Swing</button>
               </div>
             </div>
-             <div className="timeline" role="tablist" aria-label="Swing Phase Timeline">
-               {analysisData.map(p => (
-                 <button 
-                   key={p.phase} 
-                   role="tab"
-                  aria-selected={selectedPhase.phase === p.phase}
-                  aria-label={`Select ${p.phase} phase`}
-                  className={`phase-marker ${selectedPhase.phase === p.phase ? 'active' : ''}`} 
-                  onClick={() => setSelectedPhase(p)}
-                >
-                  {p.phase}
-                </button>
-              ))}
-            </div>
-          </section>
-    
-            <section className="metrics-panel" aria-label="Analysis Metrics">
-               <div className="selected-phase-header">
-                 <h3 id="metrics-title">TrackMan Metrics</h3>
-                 <span className="phase-badge" aria-label={`Current Phase: ${selectedPhase.phase.toUpperCase()}`}>{selectedPhase.phase.toUpperCase()}</span>
+          ) : (
+            <div className="analysis-grid">
+             <section className="video-player" aria-label="Swing Video Analysis">
+               <div className="placeholder">
+                 <div className="video-placeholder-content">
+                   Video Player Area
+                   <div className="overlay-labels">
+                     <span className="label pose">Pose Tracking</span>
+                     <span className="label club">Club Path</span>
+                   </div>
+                   <div className="confidence-badge">Confidence: 94%</div>
+                 </div>
                </div>
-               <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
-               <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
-               <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
-               <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
-            </section>
-    
-            <section className="tips-panel" aria-label="AI Tips and Drills">
-              <h3>AI Drills & Tips</h3>
-              {isFetchingTips ? (
-                <p>Loading AI insights...</p>
-              ) : tips.length > 0 ? (
-                tips.map(drill => (
-                  <div key={drill.id} className="drill-card">
-                    <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
-                    <p>{drill.description}</p>
-                    <button>View Drill Video</button>
-                  </div>
-                ))
-              ) : (
-                <p>No specific drills for this phase.</p>
-              )}
-            </section>
-          </div>
+                <div className="timeline" role="tablist" aria-label="Swing Phase Timeline">
+                  {analysisData.map(p => (
+                    <button 
+                      key={p.phase} 
+                      role="tab"
+                      aria-selected={selectedPhase?.phase === p.phase}
+                      aria-label={`Select ${p.phase} phase`}
+                      className={`phase-marker ${selectedPhase?.phase === p.phase ? 'active' : ''}`} 
+                      onClick={() => setSelectedPhase(p)}
+                    >
+                      {p.phase}
+                    </button>
+                  ))}
+                </div>
+              </section>
+        
+                <section className="metrics-panel" aria-label="Analysis Metrics">
+                   <div className="selected-phase-header">
+                     <h3 id="metrics-title">TrackMan Metrics</h3>
+                     <span className="phase-badge" aria-label={`Current Phase: ${selectedPhase?.phase.toUpperCase()}`}>{selectedPhase?.phase.toUpperCase()}</span>
+                   </div>
+                   <div className="metric-card">Club Angle: {selectedPhase?.metrics.clubAngle}°</div>
+                   <div className="metric-card">Shoulder Tilt: {selectedPhase?.metrics.shoulderTilt}°</div>
+                   <div className="metric-card">Hip Rotation: {selectedPhase?.metrics.hipRotation}°</div>
+                   <div className="metric-card">Tempo: {selectedPhase?.metrics.tempo}</div>
+                </section>
+        
+                <section className="tips-panel" aria-label="AI Tips and Drills">
+                  <h3>AI Drills & Tips</h3>
+                  {isFetchingTips ? (
+                    <p>Loading AI insights...</p>
+                  ) : tips.length > 0 ? (
+                    tips.map(drill => (
+                      <div key={drill.id} className="drill-card">
+                        <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
+                        <p>{drill.description}</p>
+                        <button>View Drill Video</button>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No specific drills for this phase.</p>
+                  )}
+                </section>
+              </div>
+          )}
         </main>
     </div>
   );
