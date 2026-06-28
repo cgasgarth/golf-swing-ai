@@ -7,7 +7,7 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run && bun test tests/server/db.test.ts",
+    "test": "vitest run && bun test tests/server/db.test.ts tests/server/**/*.bun.test.ts",
     "test:db": "bun test tests/server/db.test.ts",
     "coverage": "vitest run --coverage",
     "e2e": "playwright test",

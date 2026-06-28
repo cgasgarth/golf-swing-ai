@@ -42,3 +42,6 @@ playwright-report/
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# uploads
+uploads/

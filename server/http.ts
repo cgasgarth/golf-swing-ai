@@ -32,9 +32,7 @@ const server = Bun.serve({
       }
 
       if (req.method === 'POST') {
-        const body = await req.json();
-        const result = await api.post(path, body);
-        return new Response(JSON.stringify(result), { headers: responseHeaders });
+        return await handlePostRequest(req, path, responseHeaders);
       }
 
       return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
@@ -50,4 +48,26 @@ const server = Bun.serve({
   },
 });
 
+async function handlePostRequest(req: Request, path: string, responseHeaders: any) {
+  const contentType = req.headers.get('content-type') || '';
+  if (contentType.startsWith('multipart/form-data')) {
+    const formData = await req.formData();
+    const body = Object.fromEntries(formData.entries());
+    
+    const video = formData.get('video');
+    if (video instanceof File) {
+      (body as any).videoFile = video;
+    }
+    
+    const result = await api.post(path, body);
+    return new Response(JSON.stringify(result), { headers: responseHeaders });
+  }
+
+  const body = await req.json();
+  const result = await api.post(path, body);
+  return new Response(JSON.stringify(result), { headers: responseHeaders });
+}
+
 console.log(`Listening on http://localhost:${server.port}`);
+
+export { server };
