@@ -10,6 +10,8 @@ describe('App Skeleton', () => {
 
   it('navigates to DashboardView after login', () => {
     render(<App />);
+    const userField = screen.getByPlaceholderText('Username');
+    fireEvent.change(userField, { target: { value: 'testuser' } });
     const loginBtn = screen.getByText('Login / Register');
     fireEvent.click(loginBtn);
     expect(screen.getByText('Swing Analysis')).toBeInTheDocument();
@@ -17,6 +19,8 @@ describe('App Skeleton', () => {
 
   it('navigates back to AuthView after logout', () => {
     render(<App />);
+    const userField = screen.getByPlaceholderText('Username');
+    fireEvent.change(userField, { target: { value: 'testuser' } });
     fireEvent.click(screen.getByText('Login / Register'));
     fireEvent.click(screen.getByText('Logout'));
     expect(screen.getByText('Golf Swing AI Login')).toBeInTheDocument();
@@ -24,6 +28,8 @@ describe('App Skeleton', () => {
 
   it('updates metrics and drills when phase markers are clicked', () => {
     render(<App />);
+    const userField = screen.getByPlaceholderText('Username');
+    fireEvent.change(userField, { target: { value: 'testuser' } });
     fireEvent.click(screen.getByText('Login / Register'));
 
     // Click 'top' phase: should see 90 deg and Wall Drill

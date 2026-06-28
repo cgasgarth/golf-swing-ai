@@ -10,7 +10,7 @@ export const AuthView: React.FC<{ onAuth: (u: User) => void }> = ({ onAuth }) =>
       <h2>Golf Swing AI Login</h2>
       <input value={user} onChange={e => setUser(e.target.value)} placeholder="Username" />
       <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password" />
-      <button onClick={() => onAuth({ id: 1, username: user })}>Login / Register</button>
+      <button disabled={!user} onClick={() => onAuth({ id: 1, username: user })}>Login / Register</button>
     </div>
   );
 };

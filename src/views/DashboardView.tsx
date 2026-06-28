@@ -18,6 +18,19 @@ const MockDrills: Drill[] = [
 
 export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData>(MockPhases[0]);
+  const [fileName, setFileName] = React.useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFileName(e.target.files[0].name);
+    }
+  };
+
+  const handleAnalyze = () => {
+    setIsAnalyzing(true);
+    setTimeout(() => setIsAnalyzing(false), 2000);
+  };
 
   return (
     <div className="dashboard">
@@ -27,8 +40,11 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
       </header>
       
       <div className="upload-section">
-        <input type="file" accept="video/*" />
-        <button>Upload & Analyze</button>
+        <input type="file" accept="video/*" onChange={handleFileChange} />
+        {fileName && <span className="selected-file">Selected: {fileName}</span>}
+        <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
+          {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
+        </button>
       </div>
 
       <div className="analysis-grid">
