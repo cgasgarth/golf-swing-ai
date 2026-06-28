@@ -3,8 +3,12 @@ import { test, expect } from '@playwright/test';
 test.describe('Error and Edge Cases', () => {
   test('login failure with empty credentials', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByText('Login / Register')).toBeDisabled();
-    await expect(page.getByText('Golf Swing AI Login')).toBeVisible();
+    const submitButton = page.getByRole('button', { name: 'Login / Register' });
+    await expect(submitButton).toBeDisabled();
+    
+    await page.getByPlaceholder('Username').fill('user');
+    await page.getByPlaceholder('Password').fill('pass');
+    await expect(submitButton).toBeEnabled();
   });
 
   test('upload failure - mock server error', async ({ page }) => {
@@ -33,7 +37,7 @@ test.describe('Error and Edge Cases', () => {
     await page.getByRole('button', { name: 'Upload & Analyze' }).click();
 
     // 4. Expect error message
-    await expect(page.locator('.error-banner')).toBeVisible();
-    await expect(page.locator('.error-banner')).toContainText('Analysis failed');
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('alert')).toContainText('Analysis failed');
   });
 });
