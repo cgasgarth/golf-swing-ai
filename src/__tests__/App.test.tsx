@@ -67,6 +67,7 @@ describe('App Skeleton', () => {
       expect(screen.getByText('Swing Analysis')).toBeInTheDocument();
     });
 
+    fireEvent.click(screen.getByText('Load Demo Swing'));
     fireEvent.click(screen.getByText('top'));
     
     await waitFor(() => {
