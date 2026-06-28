@@ -1,5 +1,4 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
 
 # Prevent commits to main
 branch=$(git rev-parse --abbrev-ref HEAD)
