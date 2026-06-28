@@ -1,4 +1,5 @@
 import { authService, swingService } from './db';
+import { getSwingTips } from './ai';
 
 export const api = {
   post: async (path: string, body: any) => {
@@ -6,6 +7,7 @@ export const api = {
     if (path === '/auth/register') return authService.register(body.username, body.password);
     if (path === '/auth/login') return authService.login(body.username, body.password);
     if (path === '/swings/upload') return swingService.uploadSwing(body.userId, body.videoUrl);
+    if (path === '/swings/tips') return getSwingTips(body);
     return { error: 'Not Found' };
   },
   get: async (path: string, query: any) => {

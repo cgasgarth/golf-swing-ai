@@ -19,6 +19,14 @@ export type SwingMetrics = {
 
 export type SwingPhase = 'address' | 'takeaway' | 'top' | 'downswing' | 'impact' | 'followthrough';
 
+export type Drill = {
+  id: string;
+  title: string;
+  description: string;
+  targetPhase: SwingPhase;
+  category: 'drill' | 'tip';
+};
+
 export type PhaseData = {
   phase: SwingPhase;
   timestamp: number;
