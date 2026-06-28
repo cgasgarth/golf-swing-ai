@@ -20,13 +20,13 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
   const [tips, setTips] = React.useState<Drill[]>([]);
   const [isFetchingTips, setIsFetchingTips] = React.useState(false);
 
-  const fetchTips = async (phase: string) => {
+  const fetchTips = async (phase: string, metrics: SwingMetrics) => {
     setIsFetchingTips(true);
     try {
        const response = await fetch('/swings/tips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phase }),
+        body: JSON.stringify({ phase, metrics }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -41,7 +41,7 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
 
   React.useEffect(() => {
     if (selectedPhase) {
-      fetchTips(selectedPhase.phase);
+      fetchTips(selectedPhase.phase, selectedPhase.metrics);
     }
   }, [selectedPhase]);
 
