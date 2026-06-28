@@ -51,13 +51,50 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
     }
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
+    if (!fileName) return;
     setIsAnalyzing(true);
-    setTimeout(() => {
-      setIsAnalyzing(false);
+    try {
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const file = fileInput?.files?.[0];
+      if (!file) throw new Error('No file selected');
+
+      const formData = new FormData();
+      formData.append('video', file);
+      formData.append('userId', '1'); // Simplified userId for now
+
+      const uploadResponse = await fetch('/swings/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) throw new Error('Upload failed');
+      const { swingId } = await uploadResponse.json();
+
+      const analyzeResponse = await fetch('/swings/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ swingId }),
+      });
+
+      if (!analyzeResponse.ok) throw new Error('Analysis failed');
+      const analysis = await analyzeResponse.json();
+      
+      // The server returns analysis results via analysisService.saveAnalysis
+      // based on api.ts:32, it saves and returns an object. 
+      // Let's assume the result contains the metrics array.
+      const results = analysis.metrics || [];
+      setAnalysisData(results);
+      if (results.length > 0) setSelectedPhase(results[0]);
+      
+    } catch (error) {
+      console.error('Analysis error:', error);
+      alert('Analysis failed. Using mock data for demonstration.');
       setAnalysisData(MockPhases);
       setSelectedPhase(MockPhases[0]);
-    }, 2000);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleLoadDemo = () => {
