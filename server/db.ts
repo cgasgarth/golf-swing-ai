@@ -34,6 +34,9 @@ const initDb = (database: Database) => {
   try {
     db.run('ALTER TABLE swings ADD COLUMN file_size INTEGER');
   } catch {}
+  try {
+    db.run('ALTER TABLE swing_analyses ADD COLUMN boundaries_json TEXT');
+  } catch {}
 
     db.run(`
       CREATE TABLE IF NOT EXISTS swing_analyses (
@@ -125,13 +128,13 @@ interface SwingAnalysis {
 }
 
 export const analysisService = {
-  saveAnalysis: (swingId: number, analysis: { phaseTags: string; boundaries: any; metrics: any; tips: any; drills: any }) => {
+  saveAnalysis: (swingId: number, analysis: { phaseTags: string; boundaries?: any; metrics: any; tips: any; drills: any }) => {
     db.run(
       'INSERT INTO swing_analyses (swing_id, phase_tags, boundaries_json, metrics_json, tips_json, drills_json) VALUES (?, ?, ?, ?, ?, ?)',
       [
         swingId,
         analysis.phaseTags,
-        JSON.stringify(analysis.boundaries),
+        JSON.stringify(analysis.boundaries ?? []),
         JSON.stringify(analysis.metrics),
         JSON.stringify(analysis.tips),
         JSON.stringify(analysis.drills),
