@@ -20,6 +20,12 @@ export interface FrameSample {
 
 export type SwingPhase = 'address' | 'backswing' | 'top' | 'downswing' | 'impact' | 'followthrough';
 
+export interface PhaseBoundary {
+  phase: SwingPhase;
+  frameIndex: number;
+  timestamp: number;
+}
+
 export interface AnalysisResult {
   phase: SwingPhase;
   metrics: {
@@ -38,6 +44,42 @@ function calculateAngle(p1: Point, p2: Point, p3: Point): number {
   const mag1 = Math.sqrt(d12.x ** 2 + d12.y ** 2);
   const mag2 = Math.sqrt(d23.x ** 2 + d23.y ** 2);
   return Math.acos(dot / (mag1 * mag2)) * (180 / Math.PI);
+}
+
+export function extractFrameBoundaries(frames: FrameSample[]): PhaseBoundary[] {
+  if (frames.length === 0) return [];
+
+  const boundaries: PhaseBoundary[] = [];
+  boundaries.push({ phase: 'address', frameIndex: 0, timestamp: frames[0].timestamp });
+
+  let topFrameIndex = -1;
+  let impactFrameIndex = -1;
+
+  for (let i = 1; i < frames.length - 1; i++) {
+    const prevX = frames[i-1].clubPoints.head.x;
+    const currX = frames[i].clubPoints.head.x;
+    const nextX = frames[i+1].clubPoints.head.x;
+
+    if (currX > prevX && currX > nextX && topFrameIndex === -1) {
+      topFrameIndex = i;
+    }
+    
+    if (currX < prevX && currX < nextX && topFrameIndex !== -1 && impactFrameIndex === -1) {
+      impactFrameIndex = i;
+    }
+  }
+
+  if (topFrameIndex !== -1) {
+    boundaries.push({ phase: 'top', frameIndex: topFrameIndex, timestamp: frames[topFrameIndex].timestamp });
+  }
+  
+  if (impactFrameIndex !== -1) {
+    boundaries.push({ phase: 'impact', frameIndex: impactFrameIndex, timestamp: frames[impactFrameIndex].timestamp });
+  }
+
+  boundaries.push({ phase: 'followthrough', frameIndex: frames.length - 1, timestamp: frames[frames.length - 1].timestamp });
+
+  return boundaries;
 }
 
 export function analyzeSwing(frames: FrameSample[]): AnalysisResult[] {
