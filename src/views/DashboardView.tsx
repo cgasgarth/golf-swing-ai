@@ -99,7 +99,7 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
             <section className="metrics-panel" aria-label="Analysis Metrics">
                <div className="selected-phase-header">
                  <h3 id="metrics-title">TrackMan Metrics</h3>
-                 <span className="phase-badge" aria-labelledby="metrics-title">{selectedPhase.phase.toUpperCase()}</span>
+                 <span className="phase-badge" aria-label={`Current Phase: ${selectedPhase.phase.toUpperCase()}`}>{selectedPhase.phase.toUpperCase()}</span>
                </div>
                <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
                <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
