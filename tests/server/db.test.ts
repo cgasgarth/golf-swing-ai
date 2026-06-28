@@ -33,3 +33,40 @@ describe('analysisService isolation', () => {
     expect(analysesA).toHaveLength(1);
   });
 });
+
+describe('swingService metadata persistence', () => {
+  beforeEach(() => {
+    resetDb(':memory:');
+  });
+
+  it('should persist video metadata', () => {
+    const userId = 1;
+    const videoUrl = 'test.mp4';
+    const metadata = {
+      filename: 'my_swing.mp4',
+      mimeType: 'video/mp4',
+      size: 1024 * 1024
+    };
+
+    swingService.uploadSwing(userId, videoUrl, metadata);
+    const swings = swingService.getUserSwings(userId);
+    
+    expect(swings).toHaveLength(1);
+    expect(swings[0].original_filename).toBe(metadata.filename);
+    expect(swings[0].mime_type).toBe(metadata.mimeType);
+    expect(swings[0].file_size).toBe(metadata.size);
+  });
+
+  it('should work without metadata', () => {
+    const userId = 1;
+    const videoUrl = 'test.mp4';
+
+    swingService.uploadSwing(userId, videoUrl);
+    const swings = swingService.getUserSwings(userId);
+    
+    expect(swings).toHaveLength(1);
+    expect(swings[0].original_filename).toBeNull();
+    expect(swings[0].mime_type).toBeNull();
+    expect(swings[0].file_size).toBeNull();
+  });
+});
