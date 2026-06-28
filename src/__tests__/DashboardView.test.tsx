@@ -56,4 +56,35 @@ describe('DashboardView Demo Loading', () => {
   });
 });
 
+describe('DashboardView API Calls', () => {
+  const mockLogout = vi.fn();
+
+  test('fetchTips sends phase and metrics to /swings/tips when phase is selected', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<DashboardView onLogout={mockLogout} />);
+    
+    const loadDemoBtn = screen.getByText('Load Demo Swing');
+    fireEvent.click(loadDemoBtn);
+
+    await vi.waitFor(() => {
+      const lastCall = fetchSpy.mock.calls[0];
+      if (!lastCall) throw new Error('Fetch not called');
+      const options = lastCall[1];
+      if (!options) throw new Error('Fetch options missing');
+      const bodyStr = options.body as string;
+      const body = JSON.parse(bodyStr);
+      expect(lastCall[0]).toBe('/swings/tips');
+      expect(options.method).toBe('POST');
+      expect(body).toHaveProperty('phase');
+      expect(body).toHaveProperty('metrics');
+    });
+
+    fetchSpy.mockRestore();
+  });
+});
+
 
