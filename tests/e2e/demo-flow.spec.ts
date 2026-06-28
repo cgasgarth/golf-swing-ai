@@ -5,6 +5,7 @@ test('demo flow: login, upload, analysis, AI tips, logout', async ({ page }) => 
   await page.goto('/');
   await expect(page.getByText('Golf Swing AI Login')).toBeVisible();
   await page.getByPlaceholder('Username').fill('testuser');
+  await page.getByPlaceholder('Password').fill('testpass');
   await page.getByText('Login / Register').click();
   await expect(page.getByText('Swing Analysis')).toBeVisible();
 

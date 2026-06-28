@@ -6,22 +6,37 @@ describe('App Skeleton', () => {
   it('renders AuthView initially', () => {
     render(<App />);
     expect(screen.getByText('Golf Swing AI Login')).toBeInTheDocument();
+    expect(screen.getByLabelText('Username')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Username')).toBeRequired();
+    expect(screen.getByLabelText('Password')).toBeRequired();
   });
 
-  it('navigates to DashboardView after login', () => {
+  it('navigates to DashboardView after login', async () => {
     render(<App />);
     const userField = screen.getByPlaceholderText('Username');
     fireEvent.change(userField, { target: { value: 'testuser' } });
+    const passField = screen.getByPlaceholderText('Password');
+    fireEvent.change(passField, { target: { value: 'testpass' } });
     const loginBtn = screen.getByText('Login / Register');
     fireEvent.click(loginBtn);
-    expect(screen.getByText('Swing Analysis')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Swing Analysis')).toBeInTheDocument();
+    });
   });
 
-  it('navigates back to AuthView after logout', () => {
+  it('navigates back to AuthView after logout', async () => {
     render(<App />);
     const userField = screen.getByPlaceholderText('Username');
     fireEvent.change(userField, { target: { value: 'testuser' } });
+    const passField = screen.getByPlaceholderText('Password');
+    fireEvent.change(passField, { target: { value: 'testpass' } });
     fireEvent.click(screen.getByText('Login / Register'));
+    
+    await waitFor(() => {
+      expect(screen.getByText('Logout')).toBeInTheDocument();
+    });
+    
     fireEvent.click(screen.getByText('Logout'));
     expect(screen.getByText('Golf Swing AI Login')).toBeInTheDocument();
   });
@@ -44,7 +59,13 @@ describe('App Skeleton', () => {
     render(<App />);
     const userField = screen.getByPlaceholderText('Username');
     fireEvent.change(userField, { target: { value: 'testuser' } });
+    const passField = screen.getByPlaceholderText('Password');
+    fireEvent.change(passField, { target: { value: 'testpass' } });
     fireEvent.click(screen.getByText('Login / Register'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Swing Analysis')).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByText('top'));
     
