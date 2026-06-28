@@ -5,7 +5,7 @@ import { DashboardView } from './views/DashboardView';
 
 const AppContent = ({ user, setUser }: { user: User | null; setUser: any }) => {
   if (!user) return <AuthView onAuth={(u) => setUser(u)} />;
-  return <DashboardView onLogout={() => setUser(null)} />;
+  return <DashboardView user={user} onLogout={() => setUser(null)} />;
 };
 
 const App: React.FC = () => {

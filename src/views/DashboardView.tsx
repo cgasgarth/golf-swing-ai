@@ -1,5 +1,5 @@
 import React from 'react';
-import { SwingMetrics, PhaseData, Drill } from '../types';
+import { SwingMetrics, PhaseData, Drill, User } from '../types';
 import { DEMO_ANALYSIS, DEMO_TIPS } from '../constants/demo';
 
 const MockMetrics: SwingMetrics = { clubAngle: 45, shoulderTilt: 12, hipRotation: 30, tempo: '3:1' };
@@ -12,11 +12,13 @@ const MockPhases: PhaseData[] = [
   { phase: 'followthrough', timestamp: 5, metrics: { ...MockMetrics, clubAngle: 110 } },
 ];
 
-export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
+export const DashboardView: React.FC<{ user: User; onLogout: () => void }> = ({ user, onLogout }) => {
   const [analysisData, setAnalysisData] = React.useState<PhaseData[]>([]);
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData | null>(null);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [fileName, setFileName] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
   const [tips, setTips] = React.useState<Drill[]>([]);
   const [isFetchingTips, setIsFetchingTips] = React.useState(false);
 
@@ -47,17 +49,50 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setFileName(file.name);
     }
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
+    if (!selectedFile) return;
     setIsAnalyzing(true);
-    setTimeout(() => {
-      setIsAnalyzing(false);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append('video', selectedFile);
+       formData.append('userId', (user?.id || 1).toString());
+
+      const uploadResponse = await fetch('/swings/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) throw new Error('Upload failed');
+      const { swingId } = await uploadResponse.json();
+
+      const analyzeResponse = await fetch('/swings/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ swingId }),
+      });
+
+      if (!analyzeResponse.ok) throw new Error('Analysis failed');
+      const analysis = await analyzeResponse.json();
+      
+      const results = analysis.metrics || [];
+      setAnalysisData(results);
+      if (results.length > 0) setSelectedPhase(results[0]);
+      
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setError('Analysis failed. Using mock data for demonstration.');
       setAnalysisData(MockPhases);
       setSelectedPhase(MockPhases[0]);
-    }, 2000);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleLoadDemo = () => {
@@ -77,11 +112,13 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
       </header>
       
       <main className="dashboard-main">
+        {error && <div className="error-banner" role="alert">{error}</div>}
         <section className="upload-section" aria-label="Video Upload">
-          <input type="file" accept="video/*" onChange={handleFileChange} />
+          <label htmlFor="video-upload">Upload Swing Video</label>
+          <input id="video-upload" type="file" accept="video/*" onChange={handleFileChange} />
           {fileName && <span className="selected-file">Selected: {fileName}</span>}
-           <button onClick={handleAnalyze} disabled={!fileName || isAnalyzing}>
-              {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
+            <button onClick={handleAnalyze} disabled={!selectedFile || isAnalyzing}>
+               {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
             </button>
             <button onClick={handleLoadDemo} disabled={isAnalyzing} className="demo-button">
               Load Demo Swing
