@@ -8,7 +8,7 @@ describe('DashboardView Initial State', () => {
   const mockLogout = vi.fn();
 
   test('shows empty state initially and hides analysis grid', () => {
-    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: 1, username: 'testuser' }} onLogout={mockLogout} />);
     
     expect(screen.getByText('Ready for Analysis')).toBeInTheDocument();
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('DashboardView Phase Tabs', () => {
   const mockLogout = vi.fn();
 
   test('phase tabs are buttons with role="tab" and are selectable', () => {
-    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: 1, username: 'testuser' }} onLogout={mockLogout} />);
     
     const loadDemoBtn = screen.getByText('Load Demo Swing');
     fireEvent.click(loadDemoBtn);
@@ -42,7 +42,7 @@ describe('DashboardView Demo Loading', () => {
   const mockLogout = vi.fn();
 
   test('loads demo swing and sets correct state', async () => {
-    render(<DashboardView user={{ id: '1', username: 'testuser' }} onLogout={mockLogout} />);
+    render(<DashboardView user={{ id: 1, username: 'testuser' }} onLogout={mockLogout} />);
     
     const loadDemoBtn = screen.getByText('Load Demo Swing');
     fireEvent.click(loadDemoBtn);
@@ -58,7 +58,7 @@ describe('DashboardView Demo Loading', () => {
 
 describe('DashboardView API Calls', () => {
   const mockLogout = vi.fn();
-  const mockUser = { id: '123', username: 'testuser' };
+  const mockUser = { id: 123, username: 'testuser' };
 
   test('fetchTips sends phase and metrics to /swings/tips when phase is selected', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -106,7 +106,7 @@ describe('DashboardView API Calls', () => {
 
     render(<DashboardView user={mockUser} onLogout={mockLogout} />);
     
-    const fileInput = screen.getByTestId('video-upload-input');
+    const fileInput = screen.getByLabelText('Upload Swing Video');
     const file = new File(['video content'], 'test-swing.mp4', { type: 'video/mp4' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
@@ -131,7 +131,7 @@ describe('DashboardView API Calls', () => {
 
     render(<DashboardView user={mockUser} onLogout={mockLogout} />);
     
-    const fileInput = screen.getByTestId('video-upload-input');
+    const fileInput = screen.getByLabelText('Upload Swing Video');
     const file = new File(['video content'], 'test-swing.mp4', { type: 'video/mp4' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 

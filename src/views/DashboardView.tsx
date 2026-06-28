@@ -1,5 +1,5 @@
 import React from 'react';
-import { SwingMetrics, PhaseData, Drill } from '../types';
+import { SwingMetrics, PhaseData, Drill, User } from '../types';
 import { DEMO_ANALYSIS, DEMO_TIPS } from '../constants/demo';
 
 const MockMetrics: SwingMetrics = { clubAngle: 45, shoulderTilt: 12, hipRotation: 30, tempo: '3:1' };
@@ -12,7 +12,7 @@ const MockPhases: PhaseData[] = [
   { phase: 'followthrough', timestamp: 5, metrics: { ...MockMetrics, clubAngle: 110 } },
 ];
 
-export const DashboardView: React.FC<{ user: any; onLogout: () => void }> = ({ user, onLogout }) => {
+export const DashboardView: React.FC<{ user: User; onLogout: () => void }> = ({ user, onLogout }) => {
   const [analysisData, setAnalysisData] = React.useState<PhaseData[]>([]);
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData | null>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
@@ -62,7 +62,7 @@ export const DashboardView: React.FC<{ user: any; onLogout: () => void }> = ({ u
     try {
       const formData = new FormData();
       formData.append('video', selectedFile);
-      formData.append('userId', user?.id || '1');
+       formData.append('userId', (user?.id || 1).toString());
 
       const uploadResponse = await fetch('/swings/upload', {
         method: 'POST',
@@ -114,7 +114,8 @@ export const DashboardView: React.FC<{ user: any; onLogout: () => void }> = ({ u
       <main className="dashboard-main">
         {error && <div className="error-banner" role="alert">{error}</div>}
         <section className="upload-section" aria-label="Video Upload">
-          <input type="file" accept="video/*" onChange={handleFileChange} data-testid="video-upload-input" />
+          <label htmlFor="video-upload">Upload Swing Video</label>
+          <input id="video-upload" type="file" accept="video/*" onChange={handleFileChange} />
           {fileName && <span className="selected-file">Selected: {fileName}</span>}
             <button onClick={handleAnalyze} disabled={!selectedFile || isAnalyzing}>
                {isAnalyzing ? 'Analyzing...' : 'Upload & Analyze'}
