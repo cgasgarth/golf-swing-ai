@@ -11,15 +11,35 @@ const MockPhases: PhaseData[] = [
   { phase: 'followthrough', timestamp: 5, metrics: { ...MockMetrics, clubAngle: 110 } },
 ];
 
-const MockDrills: Drill[] = [
-  { id: '1', title: 'Wall Drill', description: 'Keep your shoulder tilt consistent.', targetPhase: 'top', category: 'drill' },
-  { id: '2', title: 'Tempo Rhythm', description: 'Focus on the transition pause.', targetPhase: 'takeaway', category: 'tip' },
-];
-
 export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [selectedPhase, setSelectedPhase] = React.useState<PhaseData>(MockPhases[0]);
   const [fileName, setFileName] = React.useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+  const [tips, setTips] = React.useState<Drill[]>([]);
+  const [isFetchingTips, setIsFetchingTips] = React.useState(false);
+
+  const fetchTips = async (phase: string) => {
+    setIsFetchingTips(true);
+    try {
+       const response = await fetch('/swings/tips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phase }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTips(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tips:', error);
+    } finally {
+      setIsFetchingTips(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchTips(selectedPhase.phase);
+  }, [selectedPhase]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -73,26 +93,29 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
         </div>
 
          <div className="metrics-panel">
-           <div className="selected-phase-header">
-             <h3>TrackMan Metrics</h3>
-             <span className="phase-badge">{selectedPhase.phase.toUpperCase()}</span>
-           </div>
-           <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
-           <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
-           <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
-           <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
-         </div>
+            <div className="selected-phase-header">
+              <h3>TrackMan Metrics</h3>
+              <span className="phase-badge">{selectedPhase.phase.toUpperCase()}</span>
+            </div>
+            <div className="metric-card">Club Angle: {selectedPhase.metrics.clubAngle}°</div>
+            <div className="metric-card">Shoulder Tilt: {selectedPhase.metrics.shoulderTilt}°</div>
+            <div className="metric-card">Hip Rotation: {selectedPhase.metrics.hipRotation}°</div>
+            <div className="metric-card">Tempo: {selectedPhase.metrics.tempo}</div>
+          </div>
 
         <div className="tips-panel">
           <h3>AI Drills & Tips</h3>
-          {MockDrills.filter(d => d.targetPhase === selectedPhase.phase).map(drill => (
-            <div key={drill.id} className="drill-card">
-              <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
-              <p>{drill.description}</p>
-              <button>View Drill Video</button>
-            </div>
-          ))}
-          {MockDrills.filter(d => d.targetPhase === selectedPhase.phase).length === 0 && (
+          {isFetchingTips ? (
+            <p>Loading AI insights...</p>
+          ) : tips.length > 0 ? (
+            tips.map(drill => (
+              <div key={drill.id} className="drill-card">
+                <strong>{drill.category.toUpperCase()}: {drill.title}</strong>
+                <p>{drill.description}</p>
+                <button>View Drill Video</button>
+              </div>
+            ))
+          ) : (
             <p>No specific drills for this phase.</p>
           )}
         </div>
@@ -100,3 +123,4 @@ export const DashboardView: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
     </div>
   );
 };
+
