@@ -9,10 +9,18 @@ export const api = {
     if (path === '/auth/login') return authService.login(body.username, body.password);
     if (path === '/swings/upload') {
       let videoUrl = body.videoUrl;
+      let metadata: { filename?: string; mimeType?: string; size?: number } = {};
+
       if (body.videoFile instanceof File) {
-        videoUrl = await saveUploadedFile(body.videoFile);
+        const file = body.videoFile;
+        videoUrl = await saveUploadedFile(file);
+        metadata = { 
+          filename: file.name, 
+          mimeType: file.type, 
+          size: file.size 
+        };
       }
-      return swingService.uploadSwing(body.userId, videoUrl);
+      return swingService.uploadSwing(Number(body.userId), videoUrl, metadata);
     }
     if (path === '/swings/analysis') return analysisService.saveAnalysis(body.swingId, body.analysis);
     if (path === '/swings/tips') return getSwingTips(body);
