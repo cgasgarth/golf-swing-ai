@@ -24,6 +24,6 @@ describe('Analysis API', () => {
     expect(analysis).not.toBeNull();
     expect(analysis?.phase_tags).toContain('address');
     expect(analysis?.phase_tags).toContain('followthrough');
-    expect(JSON.parse(analysis?.metrics_json || '[]')).toHaveLength(6);
+    expect(JSON.parse(analysis?.metrics_json || '[]')).toHaveLength(60);
   });
 });

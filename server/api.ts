@@ -1,7 +1,8 @@
 import { authService, swingService, analysisService } from './db';
 import { getSwingTips } from './ai';
 import { saveUploadedFile } from './services/upload';
-import { analyzeSwingStub, extractFrameBoundaries } from './analysis';
+import { frameService } from './services/frame';
+import { analyzeSwing, extractFrameBoundaries } from './analysis';
 
 export const api = {
   post: async (path: string, body: any) => {
@@ -25,8 +26,14 @@ export const api = {
     }
     if (path === '/swings/analyze') {
       const swingId = Number(body.swingId);
-      const analysisResults = analyzeSwingStub(swingId);
-      const boundaries = extractFrameBoundaries([]); // In stub, we don't have real frames
+      
+      // Get video info from DB to generate deterministic frames
+      const swing = swingService.getSwingById(swingId);
+      if (!swing) return { error: 'Swing not found' };
+      
+      const frames = frameService.generateFrames(swing.video_url);
+      const analysisResults = analyzeSwing(frames);
+      const boundaries = extractFrameBoundaries(frames);
       const phaseTags = analysisResults.map(r => r.phase).join(',');
       const metrics = analysisResults.map(r => ({ phase: r.phase, ...r.metrics }));
       
