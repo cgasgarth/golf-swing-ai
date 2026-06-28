@@ -3,7 +3,12 @@
 ## Manager And Worker Model
 
 - The parent Codex agent is the engineering manager for this repository.
-- The parent Codex agent may provision the repository, install system tools, configure workflow tooling, manage GitHub metadata, review browser state, and integrate reviewed worker output.
+- The parent Codex agent must NOT directly run repo/product/GitHub-management commands or edit repo files, except to:
+    - Invoke or steer OpenCode Gemma sessions.
+    - Install or provision system dependencies.
+    - Manually test or review in browser/Chrome.
+- All repo edits, GitHub labels/issues/milestones/branch protection/PR work, app implementation, tests, and docs MUST be performed by OpenCode sessions using `cerebras/gemma-4-31b`.
+- If an action cannot technically be performed by OpenCode, the manager must ask the user for permission before doing it directly, unless it is system dependency provisioning or browser/manual testing.
 - Product implementation work must go through OpenCode sessions using `cerebras/gemma-4-31b`.
 - Codex-native subagents must not be used for Gemma implementation work unless they can run `gemma-4-31b` directly without ChatGPT-account model restrictions.
 - Treat every OpenCode session running `cerebras/gemma-4-31b` as the Gemma subagent mechanism for this project.
