@@ -7,10 +7,18 @@ export const AuthView: React.FC<{ onAuth: (u: User) => void }> = ({ onAuth }) =>
 
   return (
     <div className="auth-container">
-      <h2>Golf Swing AI Login</h2>
-      <input value={user} onChange={e => setUser(e.target.value)} placeholder="Username" />
-      <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password" />
-      <button disabled={!user} onClick={() => onAuth({ id: 1, username: user })}>Login / Register</button>
+      <form onSubmit={(e) => { e.preventDefault(); onAuth({ id: 1, username: user }); }}>
+        <h2>Golf Swing AI Login</h2>
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
+          <input id="username" value={user} onChange={e => setUser(e.target.value)} placeholder="Username" required />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <input id="password" type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="Password" required />
+        </div>
+        <button type="submit" disabled={!user}>Login / Register</button>
+      </form>
     </div>
   );
 };
