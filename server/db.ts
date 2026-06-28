@@ -114,6 +114,9 @@ export const swingService = {
   },
   getUserSwings: (userId: number): Swing[] => {
     return db.query('SELECT * FROM swings WHERE user_id = ?').all(userId) as Swing[];
+  },
+  getSwingById: (swingId: number): Swing | null => {
+    return db.query('SELECT * FROM swings WHERE id = ?').get(swingId) as Swing | null;
   }
 };
 
